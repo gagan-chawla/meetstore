@@ -1,6 +1,6 @@
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     let url = "<MEETSTORE_APPS_SCRIPT_URL>";
-    fetch(`${url}?start_date=${request.startDate}&end_date=${request.endDate}`, {
+    fetch(`${url}?start_date=${request.startDate}&end_date=${request.endDate}&title=${request.meetTitle}`, {
         method: 'POST'
     }).then(
         r => {
@@ -12,4 +12,3 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
     )
     return true;
 });
-

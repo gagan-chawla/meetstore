@@ -2,7 +2,8 @@ console.info("Meetstore ON");
 
 (function () {
     var startDate = null, 
-        endDate = null;
+        endDate = null,
+        meetTitle = null;
 
     let elements = document.querySelectorAll("div > span"),
         buttonTexts = ["Join now", "Ask to join"],
@@ -17,8 +18,11 @@ console.info("Meetstore ON");
 
     joinCallElement && joinCallElement.addEventListener("mousedown", e => {
         startDate = new Date();
+        setTimeout(() => {
+            meetTitle = document.querySelectorAll("div[data-meeting-title]")[0]?.innerText.split('\n')[0];
+        }, 5000);
         let interval = setInterval(() => {
-            leaveCallElement = document.querySelectorAll("div[data-tooltip='Leave call']")[0];
+            let leaveCallElement = document.querySelectorAll("div[data-tooltip='Leave call']")[0];
             if (!!leaveCallElement) {
                 clearInterval(interval);
                 leaveCallElement.addEventListener("mousedown", e => {
@@ -39,7 +43,11 @@ console.info("Meetstore ON");
 
     function storeResult() {
         console.log('Store');
-        chrome.runtime.sendMessage({ "startDate": startDate.toLocaleString(), "endDate": endDate.toLocaleString() });
+        chrome.runtime.sendMessage({
+            "meetTitle": meetTitle, 
+            "startDate": startDate.toLocaleString(), 
+            "endDate": endDate.toLocaleString()
+        });
     }
 })();
 
