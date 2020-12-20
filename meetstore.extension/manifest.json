@@ -1,0 +1,19 @@
+{
+    "name": "Meet Store",
+    "version": "1.0.0",
+    "description": "Store meets information to google sheets",
+    "content_scripts": [
+        {
+            "matches": [
+                "https://meet.google.com/*"
+            ],
+            "js": ["content.js"]
+        }
+    ],
+    "background": {
+        "scripts": ["background.js"],
+        "persistent": false
+    },
+    "manifest_version": 2
+}
+
