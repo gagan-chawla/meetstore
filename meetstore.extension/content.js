@@ -17,10 +17,19 @@ console.info("Meetstore ON");
     }
 
     joinCallElement && joinCallElement.addEventListener("mousedown", e => {
+        let separator = "";
         startDate = new Date();
         setTimeout(() => {
-            meetTitle = document.querySelectorAll("div[data-meeting-title]")[0]?.innerText.split('\n')[0];
-        }, 5000);
+            meetTitle = document.querySelectorAll("div[data-meeting-title]")[0]?.innerText.split('\n')[0] || "";
+            if (!meetTitle) {
+                document.querySelectorAll("div[data-tooltip='Show everyone']")[0].click();
+                let participantElements = document.querySelectorAll("div[data-participant-id]");
+                for (let participant of participantElements) {
+                    meetTitle += separator + participant.innerText.split('\n')[0];
+                    separator = ", "
+                }
+            }
+        }, 30000);
         let interval = setInterval(() => {
             let leaveCallElement = document.querySelectorAll("div[data-tooltip='Leave call']")[0];
             if (!!leaveCallElement) {

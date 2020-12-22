@@ -5,7 +5,6 @@ function doPost(request) {
   let sheet = ss.getSheetByName('Sheet1');
   sheet.appendRow([startDate, endDate]);
   return ContentService.createTextOutput("Success").setMimeType(ContentService.MimeType.JAVASCRIPT);
-
 }
 
 function doGet(request) {
