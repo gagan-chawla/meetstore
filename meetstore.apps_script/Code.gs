@@ -15,4 +15,3 @@ function init() {
   let ss = SpreadsheetApp.getActiveSpreadsheet();
   PropertiesService.getScriptProperties().setProperty('key', ss.getId());
 }
-

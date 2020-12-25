@@ -1,66 +1,101 @@
-console.info("Meetstore ON");
-
-(function () {
-    var startDate = null, 
-        endDate = null,
-        meetTitle = null;
-
-    let elements = document.querySelectorAll("div > span"),
-        buttonTexts = ["Join now", "Ask to join"],
-        joinCallElement = null;
-
-    for (let element of elements) {
-        if (buttonTexts.indexOf(element.textContent) !== -1) {
-            joinCallElement = element;
-            break;
+;(function() {
+    let meetTitle = "";
+    let startDate = null;
+    let endDate = null;
+    const participants = new Set();
+    // Add click event listener to Join call element
+    let joinCallElem = getJoinCallElement();
+    joinCallElem && joinCallElem.addEventListener("mousedown", () => {
+        setStartDate();
+        addLeaveCallListener();
+        updateMeetTitle();
+        observeParticipants();
+    });
+    // Add beforeunload event listener for tab/browser close */
+    window.addEventListener("beforeunload", () => {
+        if (startDate && !endDate) {
+            setEndDate();
+            sendResult();
         }
-    }
+    });
 
-    joinCallElement && joinCallElement.addEventListener("mousedown", e => {
-        let separator = "";
-        startDate = new Date();
-        setTimeout(() => {
-            meetTitle = document.querySelectorAll("div[data-meeting-title]")[0]?.innerText.split('\n')[0] || "";
-            if (!meetTitle) {
-                document.querySelectorAll("div[data-tooltip='Show everyone']")[0].click();
-                let participantElements = document.querySelectorAll("div[data-participant-id]");
-                for (let participant of participantElements) {
-                    meetTitle += separator + participant.innerText.split('\n')[0];
-                    separator = ", "
-                }
+    /** Returns DOM element that joins call on click event */ 
+    function getJoinCallElement() {
+        let joinCallElem = null;
+        for (let elem of document.querySelectorAll("div > span")) {
+            if (["Join now", "Ask to join"].indexOf(elem.textContent) !== -1) {
+                joinCallElem = elem;
+                break;
             }
-        }, 30000);
+        }
+        return joinCallElem;
+    }
+    /** Sets start date-time for the meet */
+    function setStartDate() {
+        startDate = new Date();
+    }
+    /** Sets end date-time for the meet */
+    function setEndDate() {
+        endDate = new Date();
+    }
+    /** Waits until Leave call element exists and Add click event listener to it */
+    function addLeaveCallListener() {
         let interval = setInterval(() => {
-            let leaveCallElement = document.querySelectorAll("div[data-tooltip='Leave call']")[0];
-            if (!!leaveCallElement) {
+            let leaveCallElem = document.querySelector("div[data-tooltip='Leave call']");
+            if (!!leaveCallElem) {
                 clearInterval(interval);
-                leaveCallElement.addEventListener("mousedown", e => {
-                    endDate = new Date();
-                    storeResult();
+                leaveCallElem.addEventListener("mousedown", () => {
+                    setEndDate();
+                    sendResult();
                 });
             }
         }, 1000);
-    });
-
-    window.addEventListener("beforeunload", e => {
-        console.log("Unload");
-        if (startDate && !endDate) {
-            endDate = new Date();
-            storeResult();
+    }
+    /** Formats and updates meet title */
+    function updateMeetTitle() {
+        let scheduledMeetElem = document.querySelector("[data-meeting-title]");
+        let nicknamedMeetElem = document.querySelector("[aria-label^='Details for']")
+        let instaMeetElem = document.querySelector("[aria-label='Meeting details']");
+        let fallbackMeetElem = document.getElementsByClassName("Jyj1Td CkXZgc")[0];
+        if (scheduledMeetElem || nicknamedMeetElem || fallbackMeetElem) {
+            meetTitle = (scheduledMeetElem || nicknamedMeetElem || fallbackMeetElem).innerText.split('\n')[0].trim();
+        } else if (instaMeetElem) {
+            meetTitle = "insta Meet";
+        } else {
+            setTimeout(updateMeetTitle, 5000);
+            return;
         }
-    });
-
-    function storeResult() {
-        console.log('Store');
+        if (!instaMeetElem && meetTitle === "Meeting details") {
+            setTimeout(updateMeetTitle, 5000);
+        }
+    }
+    /** Observes new pariticipant addition */
+    function observeParticipants() {
+        let participantElems = document.querySelectorAll("[data-participant-id], [data-requested-participant-id]");
+        for (let p of participantElems) {
+            let name = (p.outerText || p.innerText).split('\n')[0].trim();
+            participants.add(name);
+        }
+        setTimeout(observeParticipants, 5000);
+        // const mObserver = new MutationObserver((mutations) => {});
+        // mObserver.observe(participantsPanel, {
+        //     subtree: true,
+        //     childList: true,
+        //     attributes: true,
+        // });
+    }
+    /** Sends mmet info to the background script */
+    function sendResult() {
         chrome.runtime.sendMessage({
-            "meetTitle": meetTitle, 
             "startDate": startDate.toLocaleString(), 
-            "endDate": endDate.toLocaleString()
+            "endDate": endDate.toLocaleString(),
+            "meetTitle": meetTitle,
+            "attendees": [...participants].join(", ")
         });
     }
 })();
 
-chrome.runtime.onMessage.addListener (function (request, sender, sendResponse) {
+/** Listener for background sent messages */
+chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
     console.info(request);
 });
-

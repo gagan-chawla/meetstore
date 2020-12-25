@@ -1,14 +1,24 @@
+import ENV from './env.js'
+
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-    let url = "<MEETSTORE_APPS_SCRIPT_URL>";
-    fetch(`${url}?start_date=${request.startDate}&end_date=${request.endDate}&title=${request.meetTitle}`, {
-        method: 'POST'
+    const url = ENV.MEETSTORE_APPS_SCRIPT_URL;
+    const params = {
+        start_date: request.startDate,
+        end_date: request.endDate,
+        title: request.meetTitle,
+        attendees: request.attendees
+    };
+    const urlParams = new URLSearchParams(Object.entries(params));
+    fetch(`${url}?${urlParams.toString()}`, {
+        method: "POST"
     }).then(
-        r => {
-            console.log("Success", r);
-        },
+        () => {},
         e => {
-            console.log("Error", e);
+            params["error"] = e;
+            // store params and error in local storage along with error
         }
     )
     return true;
 });
+
+// on start, check local storage and make requests
