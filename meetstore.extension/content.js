@@ -1,3 +1,5 @@
+chrome.runtime.sendMessage({"activate": true});
+
 ;(function() {
     let meetTitle = "";
     let startDate = null;
@@ -84,7 +86,7 @@
         //     attributes: true,
         // });
     }
-    /** Sends mmet info to the background script */
+    /** Sends meet info to the background script */
     function sendResult() {
         chrome.runtime.sendMessage({
             "startDate": startDate.toLocaleString(), 
@@ -94,8 +96,3 @@
         });
     }
 })();
-
-/** Listener for background sent messages */
-chrome.runtime.onMessage.addListener(function (request, sender, sendResponse) {
-    console.info(request);
-});
