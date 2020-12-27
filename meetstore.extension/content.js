@@ -10,7 +10,6 @@ chrome.runtime.sendMessage({"activate": true});
     joinCallElem && joinCallElem.addEventListener("mousedown", () => {
         setStartDate();
         addLeaveCallListener();
-        updateMeetTitle();
         observeParticipants();
     });
     // Add beforeunload event listener for tab/browser close */
@@ -46,6 +45,7 @@ chrome.runtime.sendMessage({"activate": true});
             let leaveCallElem = document.querySelector("div[data-tooltip='Leave call']");
             if (!!leaveCallElem) {
                 clearInterval(interval);
+                updateMeetTitle();
                 leaveCallElem.addEventListener("mousedown", () => {
                     setEndDate();
                     sendResult();
@@ -54,21 +54,18 @@ chrome.runtime.sendMessage({"activate": true});
         }, 1000);
     }
     /** Formats and updates meet title */
-    function updateMeetTitle() {
+    function updateMeetTitle(retry=0) {
         let scheduledMeetElem = document.querySelector("[data-meeting-title]");
         let nicknamedMeetElem = document.querySelector("[aria-label^='Details for']")
         let instaMeetElem = document.querySelector("[aria-label='Meeting details']");
-        let fallbackMeetElem = document.getElementsByClassName("Jyj1Td CkXZgc")[0];
+        let fallbackMeetElem = retry === 3 ? document.getElementsByClassName("Jyj1Td CkXZgc")[0] : null;
         if (scheduledMeetElem || nicknamedMeetElem || fallbackMeetElem) {
-            meetTitle = (scheduledMeetElem || nicknamedMeetElem || fallbackMeetElem).innerText.split('\n')[0].trim();
+            meetTitle = (scheduledMeetElem || nicknamedMeetElem || fallbackMeetElem)?.innerText.split('\n')[0].trim();
         } else if (instaMeetElem) {
             meetTitle = "insta Meet";
         } else {
-            setTimeout(updateMeetTitle, 5000);
+            setTimeout(updateMeetTitle, 5000, retry+1);
             return;
-        }
-        if (!instaMeetElem && meetTitle === "Meeting details") {
-            setTimeout(updateMeetTitle, 5000);
         }
     }
     /** Observes new pariticipant addition */
@@ -79,7 +76,7 @@ chrome.runtime.sendMessage({"activate": true});
             participants.add(name);
         }
         setTimeout(observeParticipants, 5000);
-        // const mObserver = new MutationObserver((mutations) => {});
+        // const mObserver = new MutationObserver((mutations) => {mObserver.disconnect();});
         // mObserver.observe(participantsPanel, {
         //     subtree: true,
         //     childList: true,
