@@ -56,16 +56,14 @@ chrome.runtime.sendMessage({"activate": true});
     /** Formats and updates meet title */
     function updateMeetTitle(retry=0) {
         let scheduledMeetElem = document.querySelector("[data-meeting-title]");
-        let nicknamedMeetElem = document.querySelector("[aria-label^='Details for']")
-        let instaMeetElem = document.querySelector("[aria-label='Meeting details']");
-        let fallbackMeetElem = retry === 3 ? document.getElementsByClassName("Jyj1Td CkXZgc")[0] : null;
-        if (scheduledMeetElem || nicknamedMeetElem || fallbackMeetElem) {
-            meetTitle = (scheduledMeetElem || nicknamedMeetElem || fallbackMeetElem)?.innerText.split('\n')[0].trim();
-        } else if (instaMeetElem) {
-            meetTitle = "insta Meet";
-        } else {
+        let scheduledMeetTitle = !!scheduledMeetElem ? scheduledMeetElem.innerText.split('\n')[0].trim() : null;
+        if (retry === 3) {
+            let fallbackMeetElem = document.getElementsByClassName("Jyj1Td CkXZgc")[0];
+            meetTitle = (fallbackMeetElem && fallbackMeetElem.innerText.split('\n')[0].trim()) || "Unknown";
+        } else if (!scheduledMeetTitle || scheduledMeetTitle.startsWith("Meeting details")) {
             setTimeout(updateMeetTitle, 5000, retry+1);
-            return;
+        } else {
+            meetTitle = scheduledMeetTitle;
         }
     }
     /** Observes new pariticipant addition */
