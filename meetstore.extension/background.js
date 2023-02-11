@@ -19,8 +19,9 @@ function makeRequest(params) {
 }
 
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+    console.log(request);
     if (request.activate) {
-        chrome.pageAction.show(sender.tab.id);
+        // chrome.pageAction.show(sender.tab.id);
         chrome.storage.local.get(['__MEETSTORE'], async function(result) {
             let mStore = result.__MEETSTORE || [];
             chrome.storage.local.set({__MEETSTORE: []}, () => {});
